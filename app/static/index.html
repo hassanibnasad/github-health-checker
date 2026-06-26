@@ -1,0 +1,755 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>GitHub Vitals Monitor</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Plus Jakarta Sans for headings, Inter for body -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              // GitHub Official Dark Palette
+              gh: {
+                bg: '#0d1117',
+                panel: '#161b22',
+                border: '#30363d',
+                text: '#c9d1d9',
+                textMuted: '#8b949e',
+                blue: '#58a6ff',
+                green: '#238636',
+                greenHover: '#2ea44f',
+                red: '#f85149',
+                orange: '#f0883e',
+                yellow: '#f1e05a',
+              }
+            },
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+              heading: ['Plus Jakarta Sans', 'sans-serif'],
+              mono: ['Fira Code', 'monospace'],
+            }
+          }
+        }
+      }
+    </script>
+    
+    <style>
+      .transition-all-300 {
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      
+      .gh-card {
+        background: #161b22;
+        border: 1px solid #30363d;
+      }
+      
+      .gh-card-hover:hover {
+        border-color: #8b949e;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      }
+    </style>
+  </head>
+  
+  <body class="min-h-screen bg-gh-bg text-gh-text font-sans antialiased relative overflow-x-hidden">
+    <!-- Subtle gradient background blur -->
+    <div class="absolute top-0 left-1/4 -z-10 h-[500px] w-[600px] rounded-full bg-gh-blue/5 blur-[120px] pointer-events-none"></div>
+    <div class="absolute top-0 right-1/4 -z-10 h-[400px] w-[500px] rounded-full bg-emerald-500/5 blur-[120px] pointer-events-none"></div>
+    
+    <main class="mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 py-8 sm:px-6 lg:px-8 relative z-10">
+      <!-- Top Navigation Header -->
+      <header class="flex flex-wrap items-center justify-between gap-4 border-b border-gh-border pb-6 mb-8">
+        <div class="flex items-center gap-3">
+          <!-- Octocat Logo -->
+          <svg height="36" viewBox="0 0 16 16" version="1.1" width="36" class="text-white fill-current shrink-0">
+            <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+          </svg>
+          <div>
+            <h1 class="text-xl font-bold tracking-tight text-white font-heading sm:text-2xl flex items-center gap-2">
+              <span>GitHub Vitals Monitor</span>
+              <span class="rounded-full border border-gh-border bg-gh-panel px-2 py-0.5 text-[10px] font-medium text-gh-textMuted font-mono">v1.1.0</span>
+            </h1>
+            <p class="text-xs text-gh-textMuted mt-0.5">Determine code quality, adoption, and reliability metrics instantly via LLM diagnostics.</p>
+          </div>
+        </div>
+        <a href="/docs" class="inline-flex min-h-10 items-center rounded-lg border border-gh-border bg-gh-panel px-4 text-xs font-semibold text-gh-text transition-all-300 hover:border-gh-blue hover:text-white backdrop-blur-sm">
+          API docs
+        </a>
+      </header>
+
+      <!-- URL Entry Section -->
+      <section class="mb-8">
+        <form id="repo-form" class="flex flex-col gap-3 rounded-xl border border-gh-border bg-gh-panel p-4 shadow-xl sm:flex-row items-stretch">
+          <div class="relative flex-1 flex items-center">
+            <div class="absolute left-4 text-gh-textMuted pointer-events-none">
+              <!-- Git URL Icon -->
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              </svg>
+            </div>
+            <input
+              id="repo-url"
+              name="repo_url"
+              type="text"
+              inputmode="url"
+              required
+              autocomplete="off"
+              placeholder="e.g., https://github.com/facebook/react"
+              class="min-h-12 w-full rounded-lg border border-gh-border bg-gh-bg pl-12 pr-4 text-sm text-white outline-none transition-all-300 placeholder:text-gh-textMuted focus:border-gh-blue focus:ring-1 focus:ring-gh-blue"
+            />
+          </div>
+          <div class="flex gap-2">
+            <button
+              id="example-button"
+              type="button"
+              class="min-h-12 rounded-lg border border-gh-border bg-gh-panel px-4 text-xs font-bold text-gh-text transition-all-300 hover:bg-gh-bg hover:text-white hover:border-gh-textMuted"
+            >
+              Default Example
+            </button>
+            <button
+              id="submit-button"
+              type="submit"
+              class="min-h-12 rounded-lg bg-gh-green hover:bg-gh-greenHover px-6 text-xs font-bold text-white tracking-wide transition-all-300 hover:shadow-md flex items-center justify-center gap-2"
+            >
+              Analyze repository
+            </button>
+          </div>
+        </form>
+
+        <!-- Error Panel -->
+        <div id="error" class="mt-6 hidden rounded-lg border border-gh-red/20 bg-gh-red/10 p-4 text-xs text-gh-red backdrop-blur-sm flex items-center gap-3">
+          <svg class="h-5 w-5 text-gh-red shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <span id="error-message"></span>
+        </div>
+      </section>
+
+      <!-- Initial Info / Feature Overview Section (GitHub Theme) -->
+      <section id="intro-section" class="space-y-10 py-6">
+        <!-- Quick Presets with Language Indicator Dots -->
+        <div class="flex flex-col items-center justify-center text-center space-y-3 pb-8 border-b border-gh-border">
+          <p class="text-[10px] font-bold text-gh-textMuted uppercase tracking-wider font-heading">Or analyze popular presets instantly</p>
+          <div class="flex flex-wrap justify-center gap-2">
+            <button type="button" onclick="loadPreset('https://github.com/fastapi/fastapi')" class="px-3.5 py-1.5 rounded-lg border border-gh-border bg-gh-panel text-xs font-semibold text-gh-text hover:border-gh-blue hover:text-white flex items-center gap-2 transition-all-300">
+              <span class="h-2.5 w-2.5 rounded-full bg-[#3572A5]"></span><!-- Python Blue -->
+              <span>fastapi/fastapi</span>
+            </button>
+            <button type="button" onclick="loadPreset('https://github.com/facebook/react')" class="px-3.5 py-1.5 rounded-lg border border-gh-border bg-gh-panel text-xs font-semibold text-gh-text hover:border-gh-blue hover:text-white flex items-center gap-2 transition-all-300">
+              <span class="h-2.5 w-2.5 rounded-full bg-[#f1e05a]"></span><!-- Javascript Yellow -->
+              <span>facebook/react</span>
+            </button>
+            <button type="button" onclick="loadPreset('https://github.com/django/django')" class="px-3.5 py-1.5 rounded-lg border border-gh-border bg-gh-panel text-xs font-semibold text-gh-text hover:border-gh-blue hover:text-white flex items-center gap-2 transition-all-300">
+              <span class="h-2.5 w-2.5 rounded-full bg-[#3572A5]"></span><!-- Python Blue -->
+              <span>django/django</span>
+            </button>
+            <button type="button" onclick="loadPreset('https://github.com/tailwindlabs/tailwindcss')" class="px-3.5 py-1.5 rounded-lg border border-gh-border bg-gh-panel text-xs font-semibold text-gh-text hover:border-gh-blue hover:text-white flex items-center gap-2 transition-all-300">
+              <span class="h-2.5 w-2.5 rounded-full bg-[#38bdf8]"></span><!-- Tailwind Cyan -->
+              <span>tailwindlabs/tailwindcss</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="text-center max-w-xl mx-auto space-y-2">
+          <h2 class="text-lg font-bold tracking-tight text-white font-heading">What We Evaluate</h2>
+          <p class="text-xs text-gh-textMuted leading-relaxed">Our grading system utilizes static repository signals and AI diagnostics to evaluate production adoption readiness.</p>
+        </div>
+
+        <!-- 3x2 Grid of GitHub-styled features -->
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          
+          <!-- Card 1: Commit Activity (Contribution Grid Mockup) -->
+          <div class="gh-card rounded-xl p-5 flex flex-col justify-between h-56 transition-all-300 hover:border-gh-textMuted group">
+            <div class="space-y-2.5">
+              <div class="flex items-center gap-2 text-emerald-400">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3 class="text-xs font-bold text-white uppercase tracking-wider font-heading">Commit Activity</h3>
+              </div>
+              <p class="text-[11px] text-gh-textMuted leading-relaxed">Checks latest commit recency and frequency patterns to ensure a codebase is currently maintained and not stale.</p>
+            </div>
+            
+            <!-- Mini Contribution calendar mockup -->
+            <div class="flex flex-col gap-1 mt-3">
+              <div class="grid grid-cols-[repeat(15,_minmax(0,_1fr))] gap-0.5 w-fit p-1 bg-gh-bg rounded border border-gh-border/50">
+                <!-- Row of squares -->
+                <div class="h-2 w-2 rounded bg-gh-border/40"></div>
+                <div class="h-2 w-2 rounded bg-[#0e4429]"></div>
+                <div class="h-2 w-2 rounded bg-[#006d32]"></div>
+                <div class="h-2 w-2 rounded bg-[#26a641]"></div>
+                <div class="h-2 w-2 rounded bg-[#39d353]"></div>
+                <div class="h-2 w-2 rounded bg-gh-border/40"></div>
+                <div class="h-2 w-2 rounded bg-[#0e4429]"></div>
+                <div class="h-2 w-2 rounded bg-[#006d32]"></div>
+                <div class="h-2 w-2 rounded bg-[#0e4429]"></div>
+                <div class="h-2 w-2 rounded bg-[#26a641]"></div>
+                <div class="h-2 w-2 rounded bg-[#39d353]"></div>
+                <div class="h-2 w-2 rounded bg-[#006d32]"></div>
+                <div class="h-2 w-2 rounded bg-gh-border/40"></div>
+                <div class="h-2 w-2 rounded bg-[#0e4429]"></div>
+                <div class="h-2 w-2 rounded bg-[#39d353]"></div>
+              </div>
+              <div class="flex items-center justify-between text-[8px] text-gh-textMuted px-1">
+                <span>Less</span>
+                <span class="flex gap-0.5">
+                  <span class="h-1.5 w-1.5 bg-gh-border/40 rounded-sm"></span>
+                  <span class="h-1.5 w-1.5 bg-[#0e4429] rounded-sm"></span>
+                  <span class="h-1.5 w-1.5 bg-[#006d32] rounded-sm"></span>
+                  <span class="h-1.5 w-1.5 bg-[#26a641] rounded-sm"></span>
+                  <span class="h-1.5 w-1.5 bg-[#39d353] rounded-sm"></span>
+                </span>
+                <span>More</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Issue Management (GitHub Issue Mockup) -->
+          <div class="gh-card rounded-xl p-5 flex flex-col justify-between h-56 transition-all-300 hover:border-gh-textMuted group">
+            <div class="space-y-2.5">
+              <div class="flex items-center gap-2 text-gh-blue">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <h3 class="text-xs font-bold text-white uppercase tracking-wider font-heading">Issue Management</h3>
+              </div>
+              <p class="text-[11px] text-gh-textMuted leading-relaxed">Grades the open issue backlog volume in relation to repository age to evaluate developer responsiveness.</p>
+            </div>
+            
+            <!-- Issue UI Mockup -->
+            <div class="rounded border border-gh-border/50 bg-gh-bg p-2 flex flex-col gap-1.5">
+              <div class="flex items-center gap-1.5 text-[9px]">
+                <svg class="h-3 w-3 text-emerald-500 shrink-0" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M8 9.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"></path>
+                  <path fill-rule="evenodd" d="M8 0a8 8 0 100 16A8 8 0 008 0zM1.5 8a6.5 6.5 0 1113 0 6.5 6.5 0 01-13 0z"></path>
+                </svg>
+                <span class="font-semibold text-white truncate">#1402 Feature implementation completed</span>
+              </div>
+              <div class="flex items-center gap-2 text-[8px] text-gh-textMuted ml-4.5">
+                <span class="rounded bg-zinc-800 border border-gh-border/30 px-1 py-0.5">priority:high</span>
+                <span>opened 2 days ago</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3: Legal Safety (GitHub License Badge Mockup) -->
+          <div class="gh-card rounded-xl p-5 flex flex-col justify-between h-56 transition-all-300 hover:border-gh-textMuted group">
+            <div class="space-y-2.5">
+              <div class="flex items-center gap-2 text-indigo-400">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                <h3 class="text-xs font-bold text-white uppercase tracking-wider font-heading">Legal Safety</h3>
+              </div>
+              <p class="text-[11px] text-gh-textMuted leading-relaxed">Scans for open-source licenses to prevent licensing conflicts and legal liability issues in commercial systems.</p>
+            </div>
+            
+            <!-- License File Mockup -->
+            <div class="rounded border border-gh-border/50 bg-gh-bg p-2 flex items-center justify-between">
+              <div class="flex items-center gap-2 text-[9px]">
+                <svg class="h-4 w-4 text-gh-textMuted shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span class="font-mono text-white">LICENSE.md</span>
+              </div>
+              <span class="text-[8px] bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-1.5 py-0.5 rounded font-bold uppercase">MIT Approved</span>
+            </div>
+          </div>
+
+          <!-- Card 4: Community Trust (Star and Fork Stats Mockup) -->
+          <div class="gh-card rounded-xl p-5 flex flex-col justify-between h-56 transition-all-300 hover:border-gh-textMuted group">
+            <div class="space-y-2.5">
+              <div class="flex items-center gap-2 text-gh-yellow">
+                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                <h3 class="text-xs font-bold text-white uppercase tracking-wider font-heading">Community Trust</h3>
+              </div>
+              <p class="text-[11px] text-gh-textMuted leading-relaxed">Monitors community interest via stars and forks to filter out unvetted copycats and isolated personal repos.</p>
+            </div>
+            
+            <!-- Stars/Forks Count UI Mockup -->
+            <div class="flex gap-2">
+              <div class="flex-1 rounded border border-gh-border/50 bg-gh-bg p-2 text-center">
+                <span class="text-[8px] font-bold text-gh-textMuted block uppercase">Stars</span>
+                <span class="text-xs font-extrabold text-white">45.2k</span>
+              </div>
+              <div class="flex-1 rounded border border-gh-border/50 bg-gh-bg p-2 text-center">
+                <span class="text-[8px] font-bold text-gh-textMuted block uppercase">Forks</span>
+                <span class="text-xs font-extrabold text-white">8.4k</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 5: Project Maturity (Git Branch and Timeline Mockup) -->
+          <div class="gh-card rounded-xl p-5 flex flex-col justify-between h-56 transition-all-300 hover:border-gh-textMuted group">
+            <div class="space-y-2.5">
+              <div class="flex items-center gap-2 text-gh-orange">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+                <h3 class="text-xs font-bold text-white uppercase tracking-wider font-heading">Project Maturity</h3>
+              </div>
+              <p class="text-[11px] text-gh-textMuted leading-relaxed">Analyzes repository historical lifespan to verify stability, preventing adoption of newly published, unproven code.</p>
+            </div>
+            
+            <!-- Git branch mockup -->
+            <div class="rounded border border-gh-border/50 bg-gh-bg p-2 flex items-center gap-3">
+              <div class="flex items-center gap-1 text-[9px] text-gh-blue font-mono bg-gh-blue/10 border border-gh-blue/20 rounded px-1.5 py-0.5">
+                <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7a3 3 0 100-6 3 3 0 000 6zM8 7v7M8 14a3 3 0 100 6 3 3 0 000-6zM16 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span>main</span>
+              </div>
+              <div class="text-[8px] text-gh-textMuted font-medium truncate">
+                <span>History: 4 years active</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 6: AI Verdict (LLM Terminal Shell Mockup) -->
+          <div class="gh-card rounded-xl p-5 flex flex-col justify-between h-56 transition-all-300 hover:border-gh-textMuted group">
+            <div class="space-y-2.5">
+              <div class="flex items-center gap-2 text-purple-400">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                <h3 class="text-xs font-bold text-white uppercase tracking-wider font-heading">AI Verdict</h3>
+              </div>
+              <p class="text-[11px] text-gh-textMuted leading-relaxed">Provides a context-aware natural language summary of risks and benefits generated by LLM reasoning.</p>
+            </div>
+            
+            <!-- LLM Terminal Command line mockup -->
+            <div class="rounded border border-gh-border/50 bg-gh-bg p-2 font-mono text-[9px] text-emerald-400 flex items-center justify-between">
+              <span>$ run vitals-ai --analyze</span>
+              <span class="relative flex h-2 w-2">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Pulsing Skeleton Loader UI -->
+      <section id="skeleton-loader" class="hidden animate-pulse space-y-6">
+        <div class="grid gap-6 lg:grid-cols-[0.9fr_1.6fr]">
+          <div class="rounded-xl border border-gh-border bg-gh-panel p-6 space-y-6">
+            <div class="flex items-start justify-between">
+              <div class="space-y-3 flex-1">
+                <div class="h-6 w-2/3 rounded bg-gh-border"></div>
+                <div class="h-4 w-1/2 rounded bg-gh-border"></div>
+              </div>
+              <div class="h-20 w-20 rounded-full bg-gh-border"></div>
+            </div>
+            <div class="h-16 rounded bg-gh-border"></div>
+            <div class="flex gap-2">
+              <div class="h-6 w-20 rounded bg-gh-border"></div>
+              <div class="h-6 w-20 rounded bg-gh-border"></div>
+              <div class="h-6 w-20 rounded bg-gh-border"></div>
+            </div>
+          </div>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div class="h-28 rounded-xl border border-gh-border bg-gh-panel p-6 space-y-3">
+              <div class="h-3 w-12 rounded bg-gh-border"></div>
+              <div class="h-8 w-24 rounded bg-gh-border"></div>
+            </div>
+            <div class="h-28 rounded-xl border border-gh-border bg-gh-panel p-6 space-y-3">
+              <div class="h-3 w-12 rounded bg-gh-border"></div>
+              <div class="h-8 w-24 rounded bg-gh-border"></div>
+            </div>
+            <div class="h-28 rounded-xl border border-gh-border bg-gh-panel p-6 space-y-3">
+              <div class="h-3 w-12 rounded bg-gh-border"></div>
+              <div class="h-8 w-24 rounded bg-gh-border"></div>
+            </div>
+            <div class="h-28 rounded-xl border border-gh-border bg-gh-panel p-6 space-y-3">
+              <div class="h-3 w-12 rounded bg-gh-border"></div>
+              <div class="h-8 w-24 rounded bg-gh-border"></div>
+            </div>
+          </div>
+        </div>
+        <div class="grid gap-6 lg:grid-cols-2">
+          <div class="h-44 rounded-xl border border-gh-border bg-gh-panel p-6 space-y-4">
+            <div class="h-5 w-24 rounded bg-gh-border"></div>
+            <div class="space-y-2">
+              <div class="h-4 rounded bg-gh-border"></div>
+              <div class="h-4 w-5/6 rounded bg-gh-border"></div>
+              <div class="h-4 w-4/5 rounded bg-gh-border"></div>
+            </div>
+          </div>
+          <div class="h-44 rounded-xl border border-gh-border bg-gh-panel p-6 space-y-4">
+            <div class="h-5 w-24 rounded bg-gh-border"></div>
+            <div class="space-y-2">
+              <div class="h-4 rounded bg-gh-border"></div>
+              <div class="h-4 w-5/6 rounded bg-gh-border"></div>
+              <div class="h-4 w-4/5 rounded bg-gh-border"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Main Results Dashboard -->
+      <section id="dashboard" class="hidden space-y-6">
+        <div class="grid gap-6 lg:grid-cols-[0.9fr_1.6fr]">
+          
+          <!-- Repository Sidebar Card -->
+          <section class="gh-card rounded-xl p-6 flex flex-col justify-between relative overflow-hidden group">
+            <div class="space-y-6">
+              <div class="flex items-start justify-between gap-4">
+                <div class="space-y-1.5 flex-1 min-w-0">
+                  <p id="repo-name" class="text-xl font-bold text-white tracking-tight truncate font-heading"></p>
+                  <a id="repo-link" href="#" target="_blank" rel="noreferrer" class="inline-flex items-center gap-1 text-xs font-semibold text-gh-blue hover:underline break-all transition-all-300">
+                    <span>Visit GitHub</span>
+                    <svg class="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                </div>
+                
+                <!-- Circular Score Gauge -->
+                <div id="gauge-container" class="relative flex items-center justify-center w-24 h-24 rounded-full bg-gh-bg border border-gh-border shrink-0">
+                  <svg class="w-full h-full transform -rotate-90 scale-95" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="40" stroke="rgba(48, 54, 61, 0.4)" stroke-width="8" fill="transparent" />
+                    <circle id="score-ring" cx="50" cy="50" r="40" stroke="currentColor" stroke-width="8" fill="transparent"
+                            stroke-dasharray="251.2" stroke-dashoffset="251.2" class="transition-all duration-1000 ease-out" />
+                  </svg>
+                  <div class="absolute flex flex-col items-center justify-center text-center">
+                    <span id="grade-badge" class="text-3xl font-extrabold tracking-tighter text-white font-heading"></span>
+                    <span id="score-badge" class="text-[10px] font-bold text-gh-textMuted"></span>
+                  </div>
+                </div>
+              </div>
+              
+              <p id="repo-description" class="text-xs leading-relaxed text-gh-text font-medium line-clamp-4"></p>
+              
+              <!-- Badges Container -->
+              <div class="flex flex-wrap gap-1.5 pt-2">
+                <span id="language-pill" class="inline-flex items-center rounded bg-gh-bg px-2.5 py-1 text-[10px] font-bold text-gh-text border border-gh-border"></span>
+                <span id="license-pill" class="inline-flex items-center rounded bg-gh-bg px-2.5 py-1 text-[10px] font-bold text-gh-text border border-gh-border"></span>
+                <span id="archived-pill" class="inline-flex items-center rounded bg-gh-bg px-2.5 py-1 text-[10px] font-bold text-gh-text border border-gh-border"></span>
+              </div>
+            </div>
+            
+            <button id="copy-button" type="button" class="mt-8 min-h-11 w-full rounded-lg bg-zinc-100 hover:bg-white text-zinc-950 text-xs font-bold transition-all-300 flex items-center justify-center gap-2 tracking-wide uppercase hover:shadow-lg hover:shadow-white/5">
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+              </svg>
+              <span>Copy Report</span>
+            </button>
+          </section>
+
+          <!-- Repository Stats Grid -->
+          <section class="grid gap-4 sm:grid-cols-2">
+            <!-- Stars Card -->
+            <article class="gh-card gh-card-hover rounded-xl p-5 flex flex-col justify-between transition-all-300 relative overflow-hidden">
+              <div class="flex items-center justify-between text-gh-textMuted">
+                <span class="text-xs font-bold tracking-wider uppercase font-heading">Stars</span>
+                <svg class="h-5 w-5 text-gh-yellow" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              </div>
+              <div class="mt-4">
+                <p id="stars" class="text-3xl font-extrabold text-white tracking-tight"></p>
+                <p class="text-[10px] text-gh-textMuted mt-1 uppercase font-semibold">Total community stars</p>
+              </div>
+            </article>
+
+            <!-- Forks Card -->
+            <article class="gh-card gh-card-hover rounded-xl p-5 flex flex-col justify-between transition-all-300 relative overflow-hidden">
+              <div class="flex items-center justify-between text-gh-textMuted">
+                <span class="text-xs font-bold tracking-wider uppercase font-heading">Forks</span>
+                <svg class="h-5 w-5 text-gh-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 10.742l-1.996-2.001c-.137-.137-.361-.137-.498 0L2.188 12.74c-.137.137-.137.361 0 .498l4.002 4.002c.137.137.361.137.498 0l1.996-1.996c.137-.137.137-.361 0-.498L6.182 12.24l2.502-2.502zM15.316 13.258l1.996 2.001c.137.137.361.137.498 0l4.002-4.002c.137-.137.137-.361 0-.498l-4.002-4.002c-.137-.137-.361-.137-.498 0l-1.996 1.996c-.137.137-.137.361 0 .498l2.502 2.502-2.502 2.502z" />
+                </svg>
+              </div>
+              <div class="mt-4">
+                <p id="forks" class="text-3xl font-extrabold text-white tracking-tight"></p>
+                <p class="text-[10px] text-gh-textMuted mt-1 uppercase font-semibold">Repository variations</p>
+              </div>
+            </article>
+
+            <!-- Open Issues Card -->
+            <article class="gh-card gh-card-hover rounded-xl p-5 flex flex-col justify-between transition-all-300 relative overflow-hidden">
+              <div class="flex items-center justify-between text-gh-textMuted">
+                <span class="text-xs font-bold tracking-wider uppercase font-heading">Open Issues</span>
+                <svg class="h-5 w-5 text-gh-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <div class="mt-4">
+                <p id="issues" class="text-3xl font-extrabold text-white tracking-tight"></p>
+                <p id="issue-detail" class="text-[10px] text-gh-textMuted mt-1 uppercase font-semibold"></p>
+              </div>
+            </article>
+
+            <!-- Activity Card -->
+            <article class="gh-card gh-card-hover rounded-xl p-5 flex flex-col justify-between transition-all-300 relative overflow-hidden">
+              <div class="flex items-center justify-between text-gh-textMuted">
+                <span class="text-xs font-bold tracking-wider uppercase font-heading">Activity</span>
+                <svg class="h-5 w-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div class="mt-4">
+                <p id="activity" class="text-3xl font-extrabold text-white tracking-tight"></p>
+                <p id="last-commit" class="text-[10px] text-gh-textMuted mt-1 uppercase font-semibold"></p>
+              </div>
+            </article>
+          </section>
+        </div>
+
+        <!-- Grade Reasoning & AI Verdict -->
+        <div class="grid gap-6 lg:grid-cols-2">
+          
+          <!-- Grade Explanation Panel -->
+          <section class="gh-card rounded-xl p-6 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center gap-2 pb-4 border-b border-gh-border">
+                <svg class="h-5 w-5 text-gh-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                <h2 class="text-sm font-bold uppercase tracking-wider text-white font-heading">Why this grade?</h2>
+              </div>
+              <ul id="reasons" class="mt-5 space-y-3"></ul>
+            </div>
+          </section>
+
+          <!-- AI Verdict Card -->
+          <section class="gh-card rounded-xl p-6 flex flex-col justify-between relative overflow-hidden">
+            <div>
+              <div class="flex items-center justify-between border-b border-gh-border pb-4">
+                <div class="flex items-center gap-2">
+                  <svg class="h-5 w-5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  <h2 class="text-sm font-bold uppercase tracking-wider text-white font-heading">AI Verdict</h2>
+                </div>
+                <span id="ai-provider" class="rounded bg-gh-bg border border-gh-border px-2 py-0.5 text-[9px] font-bold text-gh-textMuted uppercase tracking-widest"></span>
+              </div>
+              <p id="ai-summary" class="mt-5 text-xs leading-relaxed text-gh-text font-medium"></p>
+            </div>
+            
+            <!-- Bottom badge indicating the dynamic assistant context -->
+            <div class="mt-6 flex items-center gap-2 text-[10px] text-gh-textMuted">
+              <span class="relative flex h-2 w-2">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span>Context-aware assessment complete</span>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <!-- Slide-in Copied Toast Panel -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-10 opacity-0 pointer-events-none transition-all duration-300 ease-out">
+      <div class="flex items-center gap-3 rounded-lg border border-emerald-500/20 bg-gh-panel px-4 py-3 text-xs font-bold text-emerald-400 shadow-2xl backdrop-blur-md">
+        <svg class="h-5 w-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        <span>Report copied to clipboard!</span>
+      </div>
+    </div>
+
+    <!-- Core App Logic -->
+    <script>
+      const form = document.querySelector("#repo-form");
+      const input = document.querySelector("#repo-url");
+      const submitButton = document.querySelector("#submit-button");
+      const exampleButton = document.querySelector("#example-button");
+      const skeletonLoader = document.querySelector("#skeleton-loader");
+      const introSection = document.querySelector("#intro-section");
+      const errorBox = document.querySelector("#error");
+      const errorMessage = document.querySelector("#error-message");
+      const dashboard = document.querySelector("#dashboard");
+      const copyButton = document.querySelector("#copy-button");
+      let currentReport = null;
+
+      const numberFormatter = new Intl.NumberFormat("en");
+      const dateFormatter = new Intl.DateTimeFormat("en", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+
+      // Map grades to coloring themes
+      const gradeThemes = {
+        A: { text: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20", ring: "text-emerald-400" },
+        B: { text: "text-gh-blue", bg: "bg-gh-blue/10", border: "border-gh-blue/20", ring: "text-gh-blue" },
+        C: { text: "text-gh-yellow", bg: "bg-gh-yellow/5", border: "border-gh-yellow/20", ring: "text-gh-yellow" },
+        D: { text: "text-gh-orange", bg: "bg-gh-orange/10", border: "border-gh-orange/20", ring: "text-gh-orange" },
+        F: { text: "text-gh-red", bg: "bg-gh-red/10", border: "border-gh-red/20", ring: "text-gh-red" }
+      };
+
+      exampleButton.addEventListener("click", () => {
+        input.value = "https://github.com/fastapi/fastapi";
+        form.requestSubmit();
+      });
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        setLoading(true);
+        hideError();
+        dashboard.classList.add("hidden");
+        introSection.classList.add("hidden");
+
+        try {
+          const response = await fetch("/api/health-check", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ repo_url: input.value.trim() }),
+          });
+          const payload = await response.json();
+          if (!response.ok) {
+            throw new Error(payload.detail || "Repository analysis failed.");
+          }
+          currentReport = payload;
+          renderDashboard(payload);
+        } catch (error) {
+          showError(error.message);
+          if (!currentReport) {
+            introSection.classList.remove("hidden");
+          }
+        } finally {
+          setLoading(false);
+        }
+      });
+
+      copyButton.addEventListener("click", async () => {
+        if (!currentReport) return;
+        const report = buildMarkdownReport(currentReport);
+        await navigator.clipboard.writeText(report);
+        
+        // Show slide-in toast
+        const toast = document.querySelector("#toast");
+        toast.classList.remove("translate-y-10", "opacity-0", "pointer-events-none");
+        toast.classList.add("translate-y-0", "opacity-100");
+        
+        setTimeout(() => {
+          toast.classList.remove("translate-y-0", "opacity-100");
+          toast.classList.add("translate-y-10", "opacity-0", "pointer-events-none");
+        }, 2000);
+      });
+
+      function loadPreset(url) {
+        input.value = url;
+        form.requestSubmit();
+      }
+
+      function renderDashboard(data) {
+        const repo = data.repository;
+        const health = data.health;
+        
+        const scoreRing = document.querySelector("#score-ring");
+        const scoreBadge = document.querySelector("#score-badge");
+        const gradeBadge = document.querySelector("#grade-badge");
+        const gaugeContainer = document.querySelector("#gauge-container");
+
+        // Map values
+        document.querySelector("#repo-name").textContent = repo.full_name;
+        document.querySelector("#repo-link").href = repo.html_url;
+        document.querySelector("#repo-description").textContent = repo.description || "No repository description provided.";
+        
+        document.querySelector("#language-pill").textContent = repo.language || "Language unknown";
+        document.querySelector("#license-pill").textContent = repo.license || "No license detected";
+        document.querySelector("#archived-pill").textContent = repo.archived ? "Archived" : "Active repository";
+
+        // Style the gauge with proper coloring
+        const theme = gradeThemes[health.grade] || gradeThemes.C;
+        gaugeContainer.className = `relative flex items-center justify-center w-24 h-24 rounded-full ${theme.bg} border ${theme.border} shrink-0 transition-all duration-300`;
+        scoreRing.className.baseVal = `transition-all duration-1000 ease-out ${theme.ring}`;
+        gradeBadge.className = `text-3xl font-extrabold tracking-tighter ${theme.text} font-heading`;
+        
+        gradeBadge.textContent = health.grade;
+        scoreBadge.textContent = `${health.score}/100`;
+
+        // Stroke gauge animation logic (r=40, circumference = 251.2)
+        const offset = 251.2 - (251.2 * health.score) / 100;
+        scoreRing.style.strokeDashoffset = offset;
+
+        // Stats boxes
+        document.querySelector("#stars").textContent = numberFormatter.format(repo.stars);
+        document.querySelector("#forks").textContent = numberFormatter.format(repo.forks);
+        document.querySelector("#issues").textContent = numberFormatter.format(repo.open_issues);
+        document.querySelector("#issue-detail").textContent = `Repo age: ${numberFormatter.format(repo.age_days)} days`;
+        document.querySelector("#activity").textContent =
+          repo.days_since_activity === null ? "Unknown" : `${repo.days_since_activity} days`;
+        document.querySelector("#last-commit").textContent = repo.latest_commit_at
+          ? `Latest commit ${formatDate(repo.latest_commit_at)}`
+          : "No commit found";
+
+        // AI Reasons items
+        const reasons = document.querySelector("#reasons");
+        reasons.innerHTML = "";
+        health.reasons.forEach((reason) => {
+          const item = document.createElement("li");
+          item.className = "flex items-start gap-3 rounded-lg border border-gh-border bg-gh-panel px-4 py-3 text-xs text-gh-text transition-all-300 hover:border-gh-textMuted";
+          item.innerHTML = `
+            <svg class="h-4 w-4 ${theme.text} shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>${reason}</span>
+          `;
+          reasons.appendChild(item);
+        });
+
+        // AI Verdict summary
+        document.querySelector("#ai-summary").textContent = data.ai_verdict.summary;
+        document.querySelector("#ai-provider").textContent = data.ai_verdict.model.split('/').pop() || data.ai_verdict.model;
+        
+        dashboard.classList.remove("hidden");
+      }
+
+      function buildMarkdownReport(data) {
+        const repo = data.repository;
+        const health = data.health;
+        return [
+          `# ${repo.full_name} Health Report`,
+          "",
+          `Grade: ${health.grade} (${health.score}/100)`,
+          `Stars: ${repo.stars}`,
+          `Forks: ${repo.forks}`,
+          `Open issues: ${repo.open_issues}`,
+          `Repository age: ${repo.age_days} days`,
+          `Last activity: ${repo.days_since_activity === null ? "unknown" : `${repo.days_since_activity} days ago`}`,
+          "",
+          "Reasons:",
+          ...health.reasons.map((reason) => `- ${reason}`),
+          "",
+          `AI verdict: ${data.ai_verdict.summary}`,
+        ].join("\n");
+      }
+
+      function formatDate(value) {
+        return dateFormatter.format(new Date(value));
+      }
+
+      function setLoading(isLoading) {
+        submitButton.disabled = isLoading;
+        submitButton.innerHTML = isLoading 
+          ? `<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Analyzing...`
+          : 'Analyze repository';
+        skeletonLoader.classList.toggle("hidden", !isLoading);
+      }
+
+      function showError(message) {
+        errorMessage.textContent = message;
+        errorBox.classList.remove("hidden");
+      }
+
+      function hideError() {
+        errorMessage.textContent = "";
+        errorBox.classList.add("hidden");
+      }
+    </script>
+  </body>
+</html>
