@@ -29,6 +29,7 @@ class RepositoryMetrics(BaseModel):
     stars: int
     forks: int
     open_issues: int
+    open_prs: int
     default_branch: str
     language: str | None = None
     license: str | None = None

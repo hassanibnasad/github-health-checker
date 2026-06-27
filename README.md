@@ -30,11 +30,14 @@ The final grade is deterministic Python business logic. The AI explains the resu
 ## Local Setup
 
 ```bash
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements-dev.txt
+# Install dependencies and create virtual environment
+uv sync
+
+# Copy environment variables
 copy .env.example .env
-uvicorn app.main:app --reload --reload-dir app
+
+# Run the application
+uv run uvicorn app.main:app --reload --reload-dir app
 ```
 
 Open `http://127.0.0.1:8000`.
@@ -91,8 +94,8 @@ This repository includes a [render.yaml](file:///c:/Users/DELL/OneDrive/Desktop/
 2. Link your repository to a new **Web Service** in the Render Dashboard.
 3. Configure the service:
    - **Environment:** `Python`
-   - **Build Command:** `pip install -r requirements.txt`
-   - **Start Command:** `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+   - **Build Command:** `pip install uv && uv sync --frozen`
+   - **Start Command:** `.venv/bin/uvicorn app.main:app --host 0.0.0.0 --port $PORT`
 4. Add the following **Environment Variables** in Render settings:
    - `NVIDIA_API_KEY`: Your Nvidia API Key.
    - `GITHUB_TOKEN` *(Optional)*: Your GitHub personal access token (recommended to prevent API rate limits).

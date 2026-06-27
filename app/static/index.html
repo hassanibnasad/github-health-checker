@@ -479,14 +479,28 @@
             <!-- Open Issues Card -->
             <article class="gh-card gh-card-hover rounded-xl p-5 flex flex-col justify-between transition-all-300 relative overflow-hidden">
               <div class="flex items-center justify-between text-gh-textMuted">
-                <span class="text-xs font-bold tracking-wider uppercase font-heading">Open Issues</span>
-                <svg class="h-5 w-5 text-gh-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
+                <span class="text-xs font-bold tracking-wider uppercase font-heading">Issues & PRs</span>
+                <div class="flex items-center gap-1.5">
+                  <svg class="h-4 w-4 text-gh-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                  <svg class="h-4 w-4 text-gh-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7a3 3 0 100-6 3 3 0 000 6zM8 7v7M8 14a3 3 0 100 6 3 3 0 000-6zM16 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </div>
               </div>
-              <div class="mt-4">
-                <p id="issues" class="text-3xl font-extrabold text-white tracking-tight"></p>
-                <p id="issue-detail" class="text-[10px] text-gh-textMuted mt-1 uppercase font-semibold"></p>
+              <div class="mt-4 flex gap-4">
+                <div class="flex-1">
+                  <p id="issues" class="text-2xl font-extrabold text-white tracking-tight"></p>
+                  <p class="text-[9px] text-gh-textMuted mt-1 uppercase font-semibold">Open Issues</p>
+                </div>
+                <div class="flex-1 border-l border-gh-border/40 pl-4">
+                  <p id="prs" class="text-2xl font-extrabold text-white tracking-tight"></p>
+                  <p class="text-[9px] text-gh-textMuted mt-1 uppercase font-semibold">Open PRs</p>
+                </div>
+              </div>
+              <div class="mt-3 pt-2 border-t border-gh-border/30">
+                <p id="issue-detail" class="text-[10px] text-gh-textMuted uppercase font-semibold"></p>
               </div>
             </article>
 
@@ -680,6 +694,7 @@
         document.querySelector("#stars").textContent = numberFormatter.format(repo.stars);
         document.querySelector("#forks").textContent = numberFormatter.format(repo.forks);
         document.querySelector("#issues").textContent = numberFormatter.format(repo.open_issues);
+        document.querySelector("#prs").textContent = numberFormatter.format(repo.open_prs);
         document.querySelector("#issue-detail").textContent = `Repo age: ${numberFormatter.format(repo.age_days)} days`;
         document.querySelector("#activity").textContent =
           repo.days_since_activity === null ? "Unknown" : `${repo.days_since_activity} days`;
@@ -719,6 +734,7 @@
           `Stars: ${repo.stars}`,
           `Forks: ${repo.forks}`,
           `Open issues: ${repo.open_issues}`,
+          `Open pull requests: ${repo.open_prs}`,
           `Repository age: ${repo.age_days} days`,
           `Last activity: ${repo.days_since_activity === null ? "unknown" : `${repo.days_since_activity} days ago`}`,
           "",

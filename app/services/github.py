@@ -74,8 +74,24 @@ async def fetch_repository_metrics(repo_url: str) -> RepositoryMetrics:
             f"/repos/{owner}/{repo}/commits",
             params={"per_page": 1, "sha": default_branch},
         )
+        
+        prs_response = await client.get(
+            f"/repos/{owner}/{repo}/pulls",
+            params={"state": "open", "per_page": 1},
+        )
 
     latest_commit_at = _extract_latest_commit_date(commits_response, owner, repo)
+    _raise_for_github_error(prs_response, owner, repo)
+    
+    link_header = prs_response.headers.get("link")
+    last_page = _extract_last_page(link_header)
+    if last_page is not None:
+        open_prs = last_page
+    else:
+        open_prs = len(prs_response.json())
+
+    open_issues_count = int(repo_data.get("open_issues_count") or 0)
+    open_issues = max(open_issues_count - open_prs, 0)
 
     now = datetime.now(timezone.utc)
     created_at = _parse_github_datetime(repo_data["created_at"])
@@ -91,7 +107,8 @@ async def fetch_repository_metrics(repo_url: str) -> RepositoryMetrics:
         description=repo_data.get("description"),
         stars=int(repo_data.get("stargazers_count") or 0),
         forks=int(repo_data.get("forks_count") or 0),
-        open_issues=int(repo_data.get("open_issues_count") or 0),
+        open_issues=open_issues,
+        open_prs=open_prs,
         default_branch=default_branch,
         language=repo_data.get("language"),
         license=license_data.get("spdx_id") or license_data.get("name"),
@@ -103,6 +120,19 @@ async def fetch_repository_metrics(repo_url: str) -> RepositoryMetrics:
         archived=bool(repo_data.get("archived")),
         disabled=bool(repo_data.get("disabled")),
     )
+
+
+def _extract_last_page(link_header: str | None) -> int | None:
+    if not link_header:
+        return None
+    pattern = r'<([^>]+)>;\s*rel=["\']last["\']'
+    match = re.search(pattern, link_header)
+    if match:
+        url = match.group(1)
+        page_match = re.search(r'[?&]page=(\d+)', url)
+        if page_match:
+            return int(page_match.group(1))
+    return None
 
 
 def _github_headers() -> dict[str, str]:

@@ -1,4 +1,4 @@
-﻿import asyncio
+import asyncio
 from datetime import datetime, timezone
 
 import httpx
@@ -19,6 +19,7 @@ def make_metrics() -> RepositoryMetrics:
         stars=80000,
         forks=7000,
         open_issues=20,
+        open_prs=5,
         default_branch="master",
         language="Python",
         license="MIT",

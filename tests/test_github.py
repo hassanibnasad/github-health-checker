@@ -1,4 +1,4 @@
-﻿import asyncio
+import asyncio
 from datetime import datetime, timezone
 
 import httpx
@@ -33,7 +33,7 @@ def test_parse_github_url_rejects_invalid_urls(url):
         parse_github_url(url)
 
 
-def test_fetch_repository_metrics_uses_only_repo_and_commits_endpoints(monkeypatch):
+def test_fetch_repository_metrics_uses_only_repo_commits_and_pulls_endpoints(monkeypatch):
     calls = []
 
     class FakeAsyncClient:
@@ -76,6 +76,13 @@ def test_fetch_repository_metrics_uses_only_repo_and_commits_endpoints(monkeypat
                     json=[{"commit": {"committer": {"date": datetime.now(timezone.utc).isoformat()}}}],
                     request=request,
                 )
+            if path == "/repos/fastapi/fastapi/pulls":
+                return httpx.Response(
+                    200,
+                    json=[{}],
+                    headers={"link": '<https://api.github.com/repositories/251007874/pulls?state=open&per_page=1&page=12>; rel="last"'},
+                    request=request,
+                )
             return httpx.Response(500, json={}, request=request)
 
     monkeypatch.setattr("app.services.github.httpx.AsyncClient", FakeAsyncClient)
@@ -83,8 +90,10 @@ def test_fetch_repository_metrics_uses_only_repo_and_commits_endpoints(monkeypat
     metrics = asyncio.run(fetch_repository_metrics("https://github.com/fastapi/fastapi"))
 
     assert metrics.full_name == "fastapi/fastapi"
-    assert metrics.open_issues == 20
-    assert len(calls) == 2
+    assert metrics.open_issues == 8
+    assert metrics.open_prs == 12
+    assert len(calls) == 3
     assert calls[0][0] == "/repos/fastapi/fastapi"
     assert calls[1][0] == "/repos/fastapi/fastapi/commits"
+    assert calls[2][0] == "/repos/fastapi/fastapi/pulls"
     assert not any("search" in path for path, _ in calls)

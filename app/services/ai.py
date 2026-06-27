@@ -74,7 +74,8 @@ def _build_prompt(metrics: RepositoryMetrics, health: HealthGrade) -> str:
         f"Repository: {metrics.full_name}\n"
         f"Health grade: {health.grade} ({health.score}/100)\n"
         "The deterministic grade is based only on these three inputs:\n"
-        f"Open issues: {metrics.open_issues}\n"
+        f"Open issues: {metrics.open_issues} (excluding pull requests)\n"
+        f"Open pull requests: {metrics.open_prs}\n"
         f"Days since latest commit activity: {metrics.days_since_activity}\n"
         f"Repository age in days: {metrics.age_days}\n"
         "Additional context from the same repository endpoint:\n"
@@ -96,7 +97,7 @@ def _fallback_verdict(metrics: RepositoryMetrics, health: HealthGrade, provider:
     )
     summary = (
         f"{metrics.full_name} receives a {health.grade} grade with a score of {health.score}/100. "
-        f"The grade is based on {metrics.open_issues:,} open issues, "
+        f"The grade is based on {metrics.open_issues:,} open issues, {metrics.open_prs:,} open pull requests, "
         f"a repository age of {metrics.age_days:,} days, and {activity}. "
         "Review the grade reasons before adopting it in a production project."
     )

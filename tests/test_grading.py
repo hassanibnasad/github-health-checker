@@ -1,4 +1,4 @@
-﻿from datetime import datetime, timezone
+from datetime import datetime, timezone
 
 from app.models import RepositoryMetrics
 from app.services.grading import calculate_health_grade
@@ -14,6 +14,7 @@ def make_metrics(**overrides):
         "stars": 80000,
         "forks": 7000,
         "open_issues": 20,
+        "open_prs": 5,
         "default_branch": "master",
         "language": "Python",
         "license": "MIT",
